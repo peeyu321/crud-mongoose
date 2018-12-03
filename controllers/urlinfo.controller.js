@@ -1,5 +1,5 @@
 const URLInfo = require('../models/urlinfo.model');
-const RT = require('../models/rts.model');
+//const RT = require('../models/rts.model');
 
 exports.urlinfo_create = function (req, res, next) {
     let urlinfo = new URLInfo(
@@ -29,26 +29,27 @@ exports.urlinfo_get= function (req, res, next) {
 				if (!urlinfo) {
 				  res.send({success:false}) 
 				} else{
-					RT.findById(req.params.id, function(err, rt){
-						if (err) return next(err);
+					//RT.findById(req.params.id, function(err, rt){
+					/*	if (err) return next(err);
 						if (!rt){
 							rt.rts = [];
-						}
+						}*/
 						let response = {
 								 success: true,
 								 url: urlinfo.url,
 								 id: urlinfo._id,
 								 method: urlinfo.method,
 								 data: urlinfo.data || {},
-								 headers: urlinfo.headers || {},
-								 responses: rt.rts || [],
+								 headers: urlinfo.headers || {}
+						}
+
+					/*			 responses: rt.rts || [],
 								 "50th_percentile": (rt.rts.length===0)? "" : percentile(rts.rts, 0.50),
 								 "75th_percentile": (rt.rts.length===0)? "" : percentile(rts.rts, 0.75),
 								 "95th_percentile": (rt.rts.length===0)? "" : percentile(rts.rts, 0.95),
-								 "99th_percentile": (rt.rts.length===0)? "" : percentile(rts.rts, 0.99)
-						}
+								 "99th_percentile": (rt.rts.length===0)? "" : percentile(rts.rts, 0.99)*/
 						res.send(response);
-				 })
+				 //})
 			}
     })
 };
