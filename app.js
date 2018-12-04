@@ -20,8 +20,11 @@ db.on('error',(err)=>{
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
+app.use(function(req, res, next){
+		require("./controllers/urlinfo.controller.js").urlinfo_monitor();
+		next()
+});
 app.use('/', urlinfo);
-
 let port = 1234;
 
 app.listen(port, () => {

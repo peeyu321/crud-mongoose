@@ -1,5 +1,8 @@
+const { fork } = require('child_process');
 const URLInfo = require('../models/urlinfo.model');
-//const RT = require('../models/rts.model');
+const p = require('phin').unpromisified
+
+const rts_base_url = require("../utils/configs").rts_source;
 
 exports.urlinfo_create = function (req, res, next) {
     let urlinfo = new URLInfo(
@@ -24,11 +27,14 @@ exports.urlinfo_create = function (req, res, next) {
 
 exports.urlinfo_get= function (req, res, next) {
     URLInfo.findById(req.params.id, function (err, urlinfo) {
-			if (err) return next(err);
+ 			if (err) return next(err);
 				
 				if (!urlinfo) {
 				  res.send({success:false}) 
 				} else{
+					
+						  //query 
+					//p(url: rts_base_url)
 					//RT.findById(req.params.id, function(err, rt){
 					/*	if (err) return next(err);
 						if (!rt){
@@ -82,22 +88,20 @@ exports.ulrinfo_index = function (req, res, next) {
 	})
 }
 
+exports.urlinfo_monitor = function(){
+	const process = fork('./utils/executer.js');	
+	setInterval(function(){
+		URLInfo.find({}, function(err, urlinfos){
+			process.send(urlinfos)
+		})
+	}, 1000);
+	
+	process.on('message', (message) => {
+     console.log(`[INFO] count=${message} date=${Date.now()}`);//counter here
+   });	
+}
+
 //Simple version, without validation or sanitation
 exports.test = function (req, res) {
    res.send('Greetings from the Test controller!');
 };
-
-function percentile(arr, p) {
-    if (arr.length === 0) return 0;
-    if (typeof p !== 'number') throw new TypeError('p must be a number');
-    if (p <= 0) return arr[0];
-    if (p >= 1) return arr[arr.length - 1];
-
-    var index = arr.length * p,
-        lower = Math.floor(index),
-        upper = lower + 1,
-        weight = index % 1;
-
-    if (upper >= arr.length) return arr[lower];
-    return arr[lower] * (1 - weight) + arr[upper] * weight;
-}
