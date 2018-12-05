@@ -1,8 +1,9 @@
 const { fork } = require('child_process');
 const URLInfo = require('../models/urlinfo.model');
 const p = require('phin').unpromisified
-
 const rts_base_url = require("../utils/configs").rts_source;
+const helper = require("../utils/helper");
+const async = require("async");
 
 exports.urlinfo_create = function (req, res, next) {
     let urlinfo = new URLInfo(
@@ -32,30 +33,30 @@ exports.urlinfo_get= function (req, res, next) {
 				if (!urlinfo) {
 				  res.send({success:false}) 
 				} else{
-					
-						  //query 
-					//p(url: rts_base_url)
-					//RT.findById(req.params.id, function(err, rt){
-					/*	if (err) return next(err);
-						if (!rt){
-							rt.rts = [];
-						}*/
-						let response = {
+
+					helper.curler(urlinfo._id, (data)=>{
+						async.map(data, (key, cb)=>{
+								cb(null, key.value)
+						}, (error2, rts)=>{
+								console.log(error2, rts);
+								if (!rts) rts = []
+								
+								let response = {
 								 success: true,
 								 url: urlinfo.url,
 								 id: urlinfo._id,
 								 method: urlinfo.method,
 								 data: urlinfo.data || {},
-								 headers: urlinfo.headers || {}
-						}
-
-					/*			 responses: rt.rts || [],
-								 "50th_percentile": (rt.rts.length===0)? "" : percentile(rts.rts, 0.50),
-								 "75th_percentile": (rt.rts.length===0)? "" : percentile(rts.rts, 0.75),
-								 "95th_percentile": (rt.rts.length===0)? "" : percentile(rts.rts, 0.95),
-								 "99th_percentile": (rt.rts.length===0)? "" : percentile(rts.rts, 0.99)*/
-						res.send(response);
-				 //})
+								 headers: urlinfo.headers || {},
+								 rtsponses: rts,
+								 "50th_percentile": (rts.length===0)? "" : helper.percentile(rts, 0.50),
+								 "75th_percentile": (rts.length===0)? "" : helper.percentile(rts, 0.75),
+								 "95th_percentile": (rts.length===0)? "" : helper.percentile(rts, 0.95),
+								 "99th_percentile": (rts.length===0)? "" : helper.percentile(rts, 0.99)
+								}	
+								res.send(response);
+						})
+					})
 			}
     })
 };
@@ -96,8 +97,8 @@ exports.urlinfo_monitor = function(){
 		})
 	}, 1000);
 	
-	process.on('message', (message) => {
-     console.log(`[INFO] count=${message} date=${Date.now()}`);//counter here
+	process.on('message', (count) => {
+     console.log(`[INFO] count=${count} date=${Date.now()}`);//counter here
    });	
 }
 
